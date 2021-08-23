@@ -1,0 +1,40 @@
+{
+  "name": "nong-auto-bot",
+  "version": "1.0.0",
+  "main": "index.js",
+  "repository": "git@github.com:onedaycat/pokemon-strike.git",
+  "author": "Thiti <mklx1319@gmail.com>",
+  "license": "MIT",
+  "scripts": {
+    "prestart": "cd functions && yarn",
+    "serve": "cd functions && yarn serve",
+    "deploy": "cd functions && yarn deploy",
+    "build": "cd functions && yarn build"
+  },
+  "jest": {
+    "testEnvironment": "node",
+    "moduleFileExtensions": [
+      "ts",
+      "node",
+      "js",
+      "json"
+    ],
+    "roots": [
+      "tools",
+      "apps",
+      "cores",
+      "libs"
+    ],
+    "setupFiles": [
+      "reflect-metadata"
+    ],
+    "transform": {
+      "^.+\\.ts$": "ts-jest"
+    },
+    "testMatch": [
+      "<rootDir>/apps/**/tests/**/*.test.ts",
+      "<rootDir>/cores/**/tests/**/*.test.ts",
+      "<rootDir>/libs/**/tests/**/*.test.ts"
+    ]
+  }
+}
