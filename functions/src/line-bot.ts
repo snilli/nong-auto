@@ -5,21 +5,10 @@ import {ConfigParser} from './services/config-parser'
 import {WebhookRequestBody} from '@line/bot-sdk/lib/types'
 import {Config} from './services/interfaces/config-parser.interface'
 import {MessageGenerator} from './services/message-generator'
-import {logger} from '../common/utility'
-import crypto from 'crypto'
 
 export class LineBot {
     static validateSignature(body: string, signature: string): WebhookRequestBody | undefined {
-
         const {channelSecret} = ConfigParser.get()
-
-        const signatures = crypto
-            .createHmac('SHA256', channelSecret)
-            .update(body).digest('base64')
-        console.log(signatures)
-        console.log(signature)
-        console.log(signature === signatures)
-
         if (validateSignature(body, channelSecret, signature)) {
             return JSON.parse(body) as WebhookRequestBody
         }
@@ -40,8 +29,6 @@ export class LineBot {
     }
 
     async run(events: WebhookEvent[]): Promise<void> {
-        console.log(44444)
-        console.log(logger(events))
         const replyMessages = events.map((event) => this.msgParser.parse(event))
         await Promise.all(replyMessages.map((replyMessage) => this.client.replyMessage(
             replyMessage.replyToken,
