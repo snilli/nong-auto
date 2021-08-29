@@ -1,4 +1,4 @@
-import {ActionConfirm, ActionConfirmInput, ActionInfo, ActionText, ActionTextInput} from './action-info.interface'
+import {ActionConfirmInput, ActionInfo, ActionTextInput, ReplyConfirm, ReplyText} from './action-info.interface'
 
 export class ActionManager {
     static getAction(actionName: string): ActionInfo[] {
@@ -26,7 +26,7 @@ export class ActionManager {
     ]
 
     private static genCreatePdfAction(): ActionInfo[] {
-        const actions: ActionText[] = []
+        const actions: ReplyText[] = []
         const totalImage = 6
         for (let i = 0; i < totalImage; i++) {
             actions.push(ActionManager.actionText({
@@ -34,6 +34,7 @@ export class ActionManager {
                 nextAction: i + 2,
                 requireValue: true,
                 text: `สามารถอัพได้อีก ${totalImage - i} รูป มีรูปที่ต้องการใส่เพิ่มอีกไหม? ถ้ามีโยนมาได้เลย หากสิ้นสุดแล้วให้พิมพ์ว่า หยุด `,
+                errReply: 'error upload',
             }))
         }
 
@@ -42,7 +43,8 @@ export class ActionManager {
                 messageType: 'text',
                 nextAction: 1,
                 requireValue: false,
-                text: 'ใส่รูปที่ต้องการสร้าง PDF มาได้เลย แต่เราเก็บให้สูงสุดได้แค่ 6 รูปนะ',
+                text: 'ใส่ชื่อไฟล์ที่ต้องการ',
+                errReply: 'error name',
             }),
             ...actions,
             ActionManager.actionText({
@@ -50,17 +52,19 @@ export class ActionManager {
                 nextAction: 8,
                 requireValue: true,
                 text: 'เสร็จแล้วจ้า',
+                errReply: 'error save',
             }),
         ]
     }
 
-    private static actionText({text, requireValue, nextAction, messageType}: ActionTextInput): ActionText {
+    private static actionText({text, requireValue, nextAction, messageType, errReply}: ActionTextInput): ReplyText {
         return {
             replyType: 'text',
             text,
             requireValue,
             nextAction,
             messageType,
+            errReply,
         }
     }
 
@@ -70,7 +74,8 @@ export class ActionManager {
         requireValue,
         nextAction,
         messageType,
-    }: ActionConfirmInput): ActionConfirm {
+        errReply,
+    }: ActionConfirmInput): ReplyConfirm {
         return {
             replyType: 'confirm',
             title,
@@ -78,6 +83,7 @@ export class ActionManager {
             requireValue,
             nextAction,
             messageType,
+            errReply,
         }
     }
 }

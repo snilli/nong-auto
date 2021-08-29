@@ -1,6 +1,8 @@
 import {FirestoreRepo} from '../../../common/firestore-repo'
 import {Context, ContextState} from '../query/context'
+import {injectable} from 'tsyringe'
 
+@injectable()
 export class ContextRepo extends FirestoreRepo<Context> {
     constructor() {
         super({

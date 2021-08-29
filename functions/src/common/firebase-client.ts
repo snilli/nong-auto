@@ -1,17 +1,17 @@
 import admin from 'firebase-admin'
 import 'firebase-functions'
-import {singleton} from 'tsyringe'
+import {injectable} from 'tsyringe'
 
-@singleton()
+@injectable()
 export class FirebaeClient {
     private readonly app: admin.app.App
 
     constructor() {
         if (admin.apps.length && admin.apps[0]) {
             this.app = admin.apps[0]
+        } else {
+            this.app = admin.initializeApp()
         }
-
-        this.app = admin.initializeApp()
     }
 
     firestore(): FirebaseFirestore.Firestore {

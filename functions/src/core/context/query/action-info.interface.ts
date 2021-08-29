@@ -1,4 +1,4 @@
-export interface ActionText extends Action {
+export interface ReplyText {
     replyType: 'text'
     text: string
 }
@@ -10,20 +10,23 @@ export interface ActionConfirmButton {
     label: string
 }
 
-export interface ActionConfirm extends Action {
+export interface ReplyConfirm {
     replyType: 'confirm'
     title: string
     bottons: ActionConfirmButton[]
 }
 
-export type ActionInfo = ActionText | ActionConfirm
+export type Reply = ReplyText | ReplyConfirm
 
-export interface Action {
+export interface ActionInfo {
+    reply: Reply
     messageType: MessageType
+    checkValue?: string
     replyType: string
-    requireValue: boolean
     value?: string
+    errReply: string
     nextAction: number
+    lastAction: boolean
 }
 
 export interface ActionTextInput {
@@ -31,6 +34,7 @@ export interface ActionTextInput {
     requireValue: boolean
     nextAction: number
     messageType: MessageType
+    errReply: string
 }
 
 export interface ActionConfirmInput {
@@ -39,4 +43,5 @@ export interface ActionConfirmInput {
     requireValue: boolean
     nextAction: number
     messageType: MessageType
+    errReply: string
 }

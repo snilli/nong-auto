@@ -1,6 +1,7 @@
 import {Query} from '../../../common/query'
-import {ActionInfo} from './action-info.interface'
+import {ActionInfo, Reply} from './action-info.interface'
 import {ActionManager} from './action-manager'
+import {ActionNotFoundException, MaxWrongMessageException} from '../error'
 
 export interface ContextState {
     id: string
@@ -18,7 +19,7 @@ export class Context extends Query<ContextState> {
         const now = new Date(Date.now())
         const name = ActionManager.messageToActionName(message)
         if (!name) {
-            throw Error('action name not found')
+            throw new ActionNotFoundException()
         }
 
         return new Context({
@@ -34,6 +35,7 @@ export class Context extends Query<ContextState> {
     }
 
     protected state: ContextState
+    private maxWrong: number
 
     constructor(input: ContextState) {
         super()
@@ -77,16 +79,72 @@ export class Context extends Query<ContextState> {
         return this.state.updatedAt
     }
 
+    private static validFullfillAction(action: ActionInfo, value: string): boolean {
+        if (action.checkValue) {
+            if (action.checkValue === value) {
+                action.value = value
+
+                return true
+            } else {
+                return false
+            }
+        }
+
+        return true
+    }
+
+    private static replyError(errorMessage: string): Reply {
+        return {
+            text: errorMessage,
+            replyType: 'text',
+        }
+    }
+
     getId(): string {
         return this.state.id
     }
 
-    private nextAction(messageType: string): void {
-        const action = this.state.actionInfo[this.currentAction]
-        if (action.messageType === messageType) {
+    fullfillAction(value: string): [boolean, Reply] {
+        const action = this.getCurrentAction()
+        const now = new Date()
+        if (Context.validFullfillAction(action, value)) {
+            action.value = value
 
+            if (action.lastAction) {
+                this.state.complete = true
+            } else {
+                this.state.currentAction = action.nextAction
+            }
+
+            this.state.updatedAt = now
+
+            return [true, action.reply]
         }
+
+        if (this.state.wrong === this.maxWrong) {
+            throw new MaxWrongMessageException()
+        }
+
+        this.state.wrong += 1
+        this.state.updatedAt = now
+
+        return [false, Context.replyError(action.errReply)]
     }
+
+    getCurrentAction(): ActionInfo {
+        return this.getAction(this.currentAction)
+    }
+
+    private getAction(index: number): ActionInfo {
+        return this.state.actionInfo[index]
+    }
+
+    // nextAction(messageType: string): void {
+    //     const action = this.getCurrentAction()
+    //     if (action?.) {
+    //
+    //     }
+    // }
 
     // addAction(action: string): void {
     //     const now = new Date(Date.now())
@@ -110,5 +168,4 @@ export class Context extends Query<ContextState> {
     // isComplete(): boolean {
     //     return this.state.count === this.state.complete && this.isFullfillValue()
     // }
-
 }

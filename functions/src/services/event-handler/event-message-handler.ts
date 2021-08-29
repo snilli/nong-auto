@@ -4,6 +4,7 @@ import {injectable} from 'tsyringe'
 import {MessageGenerator} from '../message-generator'
 import {Context} from '../../core/context/query/context'
 import {ContextService} from '../context-service'
+import {ActionNotFoundException} from '../../core/context/error'
 
 @injectable()
 export class EventMessageHandler {
@@ -15,7 +16,7 @@ export class EventMessageHandler {
     ) {}
 
     handleError(event: MessageEvent): ReplyMessage {
-        return this.defalutParser(event.replyToken)
+        return this.defaultReply(event.replyToken)
     }
 
     async handle(event: MessageEvent, userId: string): Promise<ReplyMessage> {
@@ -27,20 +28,30 @@ export class EventMessageHandler {
             case 'image':
                 return this.imageParser(event.replyToken, event.message)
             default:
-                return this.defalutParser(event.replyToken)
+                return this.defaultReply(event.replyToken)
         }
     }
 
     private async getContext(event: MessageEvent, userId: string): Promise<void> {
-        if (event.message.type === 'text') {
-            this.context = await this.contextService.getContext(userId)
-            if (!this.context) {
-                this.context = await this.contextService.createContext(userId, event.message.text)
+        this.context = await this.contextService.getContext(userId)
+        if (!this.context) {
+            try {
+                if (event.message.type === 'text') {
+                    this.context = await this.contextService.createContext(userId, event.message.text)
+                }
+            } catch (e) {
+                if (!(e instanceof ActionNotFoundException)) {
+                    throw e
+                }
             }
         }
     }
 
     private textParser(replyToken: string, message: TextEventMessage): ReplyMessage {
+        if (!this.context) {
+            return this.defaultReply(replyToken)
+        }
+
         return {
             replyToken,
             message: {
@@ -60,7 +71,7 @@ export class EventMessageHandler {
         }
     }
 
-    private defalutParser(replyToken: string): ReplyMessage {
+    private defaultReply(replyToken: string): ReplyMessage {
         return {
             replyToken,
             message: {
