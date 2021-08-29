@@ -1,6 +1,6 @@
 import {Client, validateSignature, WebhookEvent} from '@line/bot-sdk'
 import {container} from 'tsyringe'
-import {MessageParser} from './services/message-parser'
+import {EventParser} from './services/event-parser'
 import {ConfigParser} from './services/config-parser'
 import {WebhookRequestBody} from '@line/bot-sdk/lib/types'
 import {Config} from './services/interfaces/config-parser.interface'
@@ -17,23 +17,24 @@ export class LineBot {
     }
 
     private readonly client: Client
-    private readonly msgParser: MessageParser
+    private readonly msgParser: EventParser
     private readonly msgGenerator: MessageGenerator
     private readonly config: Config = ConfigParser.get()
 
     constructor() {
         const {channelAccessToken, channelSecret} = this.config
         this.client = new Client({channelAccessToken, channelSecret})
-        this.msgParser = container.resolve(MessageParser)
+        this.msgParser = container.resolve(EventParser)
         this.msgGenerator = container.resolve(MessageGenerator)
     }
 
     async run(events: WebhookEvent[]): Promise<void> {
-        const replyMessages = events.map((event) => this.msgParser.parse(event))
+        const replyMessages = await Promise.all(events.map((event) => this.msgParser.parse(event)))
         await Promise.all(replyMessages.map((replyMessage) => this.client.replyMessage(
             replyMessage.replyToken,
             replyMessage.message,
         )))
+        console.log('asdsdfsfd')
 
         // this.client.login(this.token).then(async () => {
         //     const guild = this.client.guilds.find(guild => guild.name === this.guild)
@@ -75,39 +76,4 @@ export class LineBot {
         //     })
         // })
     }
-
-    // private async sendAction(msg: Message, actions?: string | string[] | undefined): Promise<void> {
-    //     if (actions) {
-    //         if (Array.isArray(actions)) {
-    //             for (const action of actions) {
-    //                 await this.sleep(this.delay)
-    //                 await msg.channel.send(action)
-    //             }
-    //         } else {
-    //             await this.sleep(this.delay)
-    //             await msg.channel.send(actions)
-    //         }
-    //     }
-    // }
-
-    // private isMessageFromChannel(msg: Message): boolean {
-    //     return (msg.channel as TextChannel).name === this.channel
-    //         && msg.guild.name === this.guild
-    // }
-    //
-    // private isMessageFromOwner(msg: Message): boolean {
-    //     return msg.member &&
-    //         msg.member.user &&
-    //         msg.member.user.username === this.username
-    // }
-    //
-    // private isMessageFromMyuu(msg: Message): boolean {
-    //     return msg.member &&
-    //         msg.member.user &&
-    //         msg.member.user.username === this.myuuUsername
-    // }
-    //
-    // private async sleep(ms): Promise<void> {
-    //     return new Promise((resolve) => setTimeout(resolve, ms))
-    // }
 }

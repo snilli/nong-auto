@@ -1,5 +1,8 @@
 {
   "compilerOptions": {
+    "resolveJsonModule": true,               // json imports
+    "esModuleInterop": true,                 // import common modules as ES6 Modules
+    "allowSyntheticDefaultImports": true,    // support typesystem compatibility
     "isolatedModules": true,
     "target": "es2018",
     "module": "commonjs",
@@ -18,8 +21,6 @@
     "experimentalDecorators": true,
     "emitDecoratorMetadata": true,
     "removeComments": false,
-    "esModuleInterop": true,
-    "resolveJsonModule": true,
     "noResolve": false,
     "types": [
       "node",
@@ -31,7 +32,4 @@
   "include": [
     "src"
   ],
-  "exclude": [
-    "common"
-  ]
 }
