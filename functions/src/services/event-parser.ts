@@ -1,16 +1,15 @@
-import {container, singleton} from 'tsyringe'
+import {singleton} from 'tsyringe'
 import {MessageEvent, WebhookEvent} from '@line/bot-sdk/lib/types'
 import {ReplyMessage} from './event-handler/interfaces/event-handler.interface'
-import {EventMessageHandler} from './event-handler/event-message-handler'
 import {SourceParser} from './event-handler/source-parser'
+import {EventMessageHandler} from './event-handler/event-message-handler'
 
 @singleton()
 export class EventParser {
-    private eventMessageHanler: EventMessageHandler
 
-    constructor() {
-        this.eventMessageHanler = container.resolve(EventMessageHandler)
-    }
+    constructor(
+        private eventMessageHanler: EventMessageHandler,
+    ) {}
 
     async parse(event: WebhookEvent): Promise<ReplyMessage> {
         const a = event as MessageEvent

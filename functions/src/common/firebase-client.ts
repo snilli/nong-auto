@@ -9,13 +9,20 @@ export class FirebaeClient {
     constructor() {
         if (admin.apps.length && admin.apps[0]) {
             this.app = admin.apps[0]
-        } else {
-            this.app = admin.initializeApp()
+            admin.apps[0]?.delete()
         }
+
+        this.app = admin.initializeApp()
+
     }
 
     firestore(): FirebaseFirestore.Firestore {
-        return this.app.firestore()
+        const firestore = this.app.firestore()
+        firestore.settings({
+            ignoreUndefinedProperties: true,
+        })
+
+        return firestore
     }
 
     storage(): admin.storage.Storage {

@@ -26,9 +26,7 @@ export class FirestoreRepo<T extends Query<any>> {
     async setDoc(document: T): Promise<void> {
         const id = document.getId()
         const collection = this.getCollectionRef()
-
         const data = document.toJSON()
-
         await collection.doc(id).set(data)
     }
 

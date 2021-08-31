@@ -1,9 +1,7 @@
 export interface ReplyText {
-    replyType: 'text'
+    type: 'text'
     text: string
 }
-
-export type MessageType = 'text' | 'image'
 
 export interface ActionConfirmButton {
     text: string
@@ -11,18 +9,16 @@ export interface ActionConfirmButton {
 }
 
 export interface ReplyConfirm {
-    replyType: 'confirm'
+    type: 'confirm'
     title: string
     bottons: ActionConfirmButton[]
 }
 
 export type Reply = ReplyText | ReplyConfirm
 
-export interface ActionInfo {
+export interface ActionDetail {
     reply: Reply
-    messageType: MessageType
     checkValue?: string
-    replyType: string
     value?: string
     errReply: string
     nextAction: number
@@ -31,17 +27,17 @@ export interface ActionInfo {
 
 export interface ActionTextInput {
     text: string
-    requireValue: boolean
     nextAction: number
-    messageType: MessageType
     errReply: string
+    checkValue?: string
+    lastAction: boolean
 }
 
 export interface ActionConfirmInput {
     title: string
     bottons: ActionConfirmButton[]
-    requireValue: boolean
     nextAction: number
-    messageType: MessageType
     errReply: string
+    checkValue?: string
+    lastAction: boolean
 }

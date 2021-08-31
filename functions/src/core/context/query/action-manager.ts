@@ -1,38 +1,36 @@
-import {ActionConfirmInput, ActionInfo, ActionTextInput, ReplyConfirm, ReplyText} from './action-info.interface'
+import {ActionConfirmInput, ActionDetail, ActionTextInput} from './action-info.interface'
 
 export class ActionManager {
-    static getAction(actionName: string): ActionInfo[] {
+    static getAction(actionName: string): ActionDetail[] {
         switch (actionName) {
             case 'create-pdf':
                 return ActionManager.genCreatePdfAction()
             default:
                 return []
         }
-
     }
 
     static messageToActionName(message: string): string | undefined {
-        return ActionManager.nameMapper.find((n) => n.text === message)?.name
+        return ActionManager.nameMapper.find((n) => n.text.includes(message))?.name
     }
 
     private static nameMapper: Array<{
         name: string
-        text: string
+        text: string[]
     }> = [
         {
             name: 'create-pdf',
-            text: 'gen pdf',
+            text: ['gen pdf'],
         },
     ]
 
-    private static genCreatePdfAction(): ActionInfo[] {
-        const actions: ReplyText[] = []
+    private static genCreatePdfAction(): ActionDetail[] {
+        const actions: ActionDetail[] = []
         const totalImage = 6
         for (let i = 0; i < totalImage; i++) {
             actions.push(ActionManager.actionText({
-                messageType: 'image',
                 nextAction: i + 2,
-                requireValue: true,
+                lastAction: false,
                 text: `สามารถอัพได้อีก ${totalImage - i} รูป มีรูปที่ต้องการใส่เพิ่มอีกไหม? ถ้ามีโยนมาได้เลย หากสิ้นสุดแล้วให้พิมพ์ว่า หยุด `,
                 errReply: 'error upload',
             }))
@@ -40,30 +38,30 @@ export class ActionManager {
 
         return [
             ActionManager.actionText({
-                messageType: 'text',
+                lastAction: false,
                 nextAction: 1,
-                requireValue: false,
                 text: 'ใส่ชื่อไฟล์ที่ต้องการ',
                 errReply: 'error name',
             }),
             ...actions,
             ActionManager.actionText({
-                messageType: 'text',
-                nextAction: 8,
-                requireValue: true,
+                lastAction: true,
+                nextAction: 0,
                 text: 'เสร็จแล้วจ้า',
                 errReply: 'error save',
             }),
         ]
     }
 
-    private static actionText({text, requireValue, nextAction, messageType, errReply}: ActionTextInput): ReplyText {
+    private static actionText({text, lastAction, nextAction, checkValue, errReply}: ActionTextInput): ActionDetail {
         return {
-            replyType: 'text',
-            text,
-            requireValue,
+            reply: {
+                type: 'text',
+                text,
+            },
+            lastAction,
             nextAction,
-            messageType,
+            checkValue,
             errReply,
         }
     }
@@ -71,19 +69,21 @@ export class ActionManager {
     private static actionConfirm({
         title,
         bottons,
-        requireValue,
         nextAction,
-        messageType,
         errReply,
-    }: ActionConfirmInput): ReplyConfirm {
+        checkValue,
+        lastAction,
+    }: ActionConfirmInput): ActionDetail {
         return {
-            replyType: 'confirm',
-            title,
-            bottons,
-            requireValue,
-            nextAction,
-            messageType,
+            reply: {
+                type: 'confirm',
+                bottons,
+                title,
+            },
+            checkValue,
             errReply,
+            nextAction,
+            lastAction,
         }
     }
 }

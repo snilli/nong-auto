@@ -12,7 +12,7 @@ import {deleteTempFile, tempFile} from '../common/file'
 console.log(path.resolve(__dirname, '1.png'))
 console.log(path.join(__dirname, '1.png'))
 const name = 'mee.pdf'
-imageToPdf(name, [path.resolve(__dirname, '1.png')], 'A4')
+imageToPdf(name, ['https://api-data.line.me/v2/bot/message/14665865467012/content'], 'A4')
     .then(async () => {
 
             admin.initializeApp({

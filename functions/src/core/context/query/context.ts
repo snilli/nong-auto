@@ -1,14 +1,16 @@
 import {Query} from '../../../common/query'
-import {ActionInfo, Reply} from './action-info.interface'
-import {ActionManager} from './action-manager'
+import {ActionDetail, Reply} from './action-info.interface'
 import {ActionNotFoundException, MaxWrongMessageException} from '../error'
+import {Actions, FullfillValue} from './actions'
+import {ActionManager} from './action-manager'
 
 export interface ContextState {
     id: string
     name: string
-    actionInfo: ActionInfo[]
+    actionInfo: Actions
     complete: boolean
     wrong: number
+    isPublic: boolean
     currentAction: number
     createdAt: Date
     updatedAt: Date
@@ -17,17 +19,18 @@ export interface ContextState {
 export class Context extends Query<ContextState> {
     static create(userId: string, message: string): Context {
         const now = new Date(Date.now())
-        const name = ActionManager.messageToActionName(message)
-        if (!name) {
+        const actionName = ActionManager.messageToActionName(message)
+        if (!actionName) {
             throw new ActionNotFoundException()
         }
 
         return new Context({
             id: userId,
-            name,
+            name: actionName,
             wrong: 0,
             currentAction: 0,
-            actionInfo: ActionManager.getAction(name),
+            actionInfo: new Actions(ActionManager.getAction(actionName)),
+            isPublic: false,
             createdAt: now,
             complete: false,
             updatedAt: now,
@@ -35,7 +38,7 @@ export class Context extends Query<ContextState> {
     }
 
     protected state: ContextState
-    private maxWrong: number
+    private readonly maxWrong: number = 3
 
     constructor(input: ContextState) {
         super()
@@ -45,8 +48,9 @@ export class Context extends Query<ContextState> {
             wrong: input.wrong,
             currentAction: input.currentAction,
             actionInfo: input.actionInfo,
-            createdAt: input.createdAt,
             complete: input.complete,
+            isPublic: input.isPublic,
+            createdAt: input.createdAt,
             updatedAt: input.updatedAt,
         }
     }
@@ -67,8 +71,8 @@ export class Context extends Query<ContextState> {
         return this.state.name
     }
 
-    get actionInfo(): ActionInfo[] {
-        return this.state.actionInfo
+    get actionInfo(): ActionDetail[] {
+        return this.state.actionInfo.toJSON()
     }
 
     get createdAt(): Date {
@@ -79,93 +83,55 @@ export class Context extends Query<ContextState> {
         return this.state.updatedAt
     }
 
-    private static validFullfillAction(action: ActionInfo, value: string): boolean {
-        if (action.checkValue) {
-            if (action.checkValue === value) {
-                action.value = value
-
-                return true
-            } else {
-                return false
-            }
-        }
-
-        return true
-    }
-
-    private static replyError(errorMessage: string): Reply {
-        return {
-            text: errorMessage,
-            replyType: 'text',
-        }
-    }
-
     getId(): string {
         return this.state.id
     }
 
-    fullfillAction(value: string): [boolean, Reply] {
-        const action = this.getCurrentAction()
+    firstReply(): Reply {
+        this.state.isPublic = true
+
+        return this.state.actionInfo.firstReply()
+    }
+
+    isPublic(): boolean {
+        return this.state.isPublic
+    }
+
+    fullfillAction(value: string): FullfillValue {
+        if (this.isMaxWrong()) {
+            throw new MaxWrongMessageException()
+        }
         const now = new Date()
-        if (Context.validFullfillAction(action, value)) {
-            action.value = value
-
-            if (action.lastAction) {
-                this.state.complete = true
-            } else {
-                this.state.currentAction = action.nextAction
-            }
-
+        const res = this.state.actionInfo.fullfillValue(this.currentAction, value)
+        if (res.success) {
+            this.state.currentAction = res.action
+            this.state.complete = res.complete
             this.state.updatedAt = now
 
-            return [true, action.reply]
-        }
-
-        if (this.state.wrong === this.maxWrong) {
-            throw new MaxWrongMessageException()
+            return res
         }
 
         this.state.wrong += 1
         this.state.updatedAt = now
 
-        return [false, Context.replyError(action.errReply)]
+        return res
     }
 
-    getCurrentAction(): ActionInfo {
-        return this.getAction(this.currentAction)
+    isMaxWrong(): boolean {
+        return this.maxWrong === this.state.wrong
     }
 
-    private getAction(index: number): ActionInfo {
-        return this.state.actionInfo[index]
+    public toJSON(): ContextState {
+        return {
+            actionInfo: this.state.actionInfo.toJSON() as unknown as Actions,
+            complete: this.state.complete,
+            createdAt: this.state.createdAt,
+            currentAction: this.state.currentAction,
+            id: this.state.id,
+            isPublic: this.state.isPublic,
+            name: this.state.name,
+            updatedAt: this.state.updatedAt,
+            wrong: this.state.wrong,
+        }
     }
-
-    // nextAction(messageType: string): void {
-    //     const action = this.getCurrentAction()
-    //     if (action?.) {
-    //
-    //     }
-    // }
-
-    // addAction(action: string): void {
-    //     const now = new Date(Date.now())
-    //     this.state.count += 1
-    //     this.state.actionInfo.push({name: action})
-    //     this.state.updatedAt = now
-    // }
-    //
-    // doAction(actionName: string, value: string): void {
-    //     const now = new Date(Date.now())
-    //     const findInfo = this.actionInfo.find((info) => info.name === actionName)
-    //     if (!findInfo) {
-    //         throw Error('action not found')
-    //     }
-    //
-    //     findInfo.value = value
-    //     this.state.complete += 1
-    //     this.state.updatedAt = now
-    // }
-    //
-    // isComplete(): boolean {
-    //     return this.state.count === this.state.complete && this.isFullfillValue()
-    // }
 }

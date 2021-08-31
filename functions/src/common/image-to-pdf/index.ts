@@ -1,10 +1,11 @@
 import PDFDocument from 'pdfkit'
 import paperSizes from './paper-size.json'
 import {createTempWriteStream} from '../file'
+import {Readable} from 'stream'
 
 export const imageToPdf = async (
     name: string,
-    images: (Buffer | string)[],
+    images: (Buffer | Readable | string)[],
     size: string,
 ): Promise<void> => {
     const doc = new PDFDocument({margin: 0, size})

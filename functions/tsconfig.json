@@ -1,8 +1,11 @@
 {
   "compilerOptions": {
-    "resolveJsonModule": true,               // json imports
-    "esModuleInterop": true,                 // import common modules as ES6 Modules
-    "allowSyntheticDefaultImports": true,    // support typesystem compatibility
+    "resolveJsonModule": true,
+    // json imports
+    "esModuleInterop": true,
+    // import common modules as ES6 Modules
+    "allowSyntheticDefaultImports": true,
+    // support typesystem compatibility
     "isolatedModules": true,
     "target": "es2018",
     "module": "commonjs",
@@ -30,6 +33,9 @@
   },
   "compileOnSave": true,
   "include": [
-    "src"
+    "src/**/*.ts"
   ],
+  "exclude": [
+    "src/test"
+  ]
 }

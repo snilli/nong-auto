@@ -1,7 +1,7 @@
 import * as functions from 'firebase-functions'
 import {Config} from './interfaces/config-parser.interface'
 
-export class ConfigParser {
+export class ConfigParserService {
     static get(): Config {
         const config = functions.config()
 

@@ -10,7 +10,6 @@ export class CreateContextUseCase {
 
     async execute(userId: string, message: string): Promise<Context> {
         const context = Context.create(userId, message)
-        console.log(context.toJSON())
         await this.repo.setDoc(context)
 
         return context
