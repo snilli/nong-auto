@@ -44,6 +44,23 @@ export class ActionManager {
                 errReply: 'error name',
             }),
             ...actions,
+            ActionManager.actionConfirm({
+                lastAction: false,
+                nextAction: 8,
+                checkValue: 'ยืนยัน',
+                title: 'กรุณายืนยันความถูกต้อง',
+                bottons: [
+                    {
+                        text: 'ยืนยัน',
+                        label: 'ยืนยัน',
+                    },
+                    {
+                        text: 'ยกเลิก',
+                        label: 'ยกเลิก',
+                    },
+                ],
+                errReply: 'error save',
+            }),
             ActionManager.actionText({
                 lastAction: true,
                 nextAction: 0,

@@ -6,6 +6,7 @@ import {ContextService} from '../context-service'
 import {Context} from '../../core/context/query/context'
 import {Reply} from '../../core/context/query/action-info.interface'
 import {ImageService} from '../image-service'
+import {ActionParser} from '../action-parser'
 
 @injectable()
 export class EventMessageHandler {
@@ -15,6 +16,7 @@ export class EventMessageHandler {
         private messageGenerator: MessageGenerator,
         private contextService: ContextService,
         private imageService: ImageService,
+        private actionParser: ActionParser,
     ) {}
 
     handleError(event: MessageEvent): ReplyMessage {
@@ -39,6 +41,22 @@ export class EventMessageHandler {
         }
     }
 
+    async textParser(userId: string, replyToken: string, message: TextEventMessage): Promise<ReplyMessage> {
+        const context = await this.getContext(userId, message.text)
+        if (!context) {
+            return {
+                replyToken,
+                message: this.messageGenerator.getDefaultMessage(),
+            }
+        }
+        const reply = await this.fullfillContext(context, message.text, userId)
+
+        return {
+            replyToken,
+            message: this.messageGenerator.parser(reply),
+        }
+    }
+
     private async getContext(userId: string, value: string): Promise<Context | undefined> {
         let context = this.contextMap.get(userId)
         if (context) {
@@ -53,7 +71,7 @@ export class EventMessageHandler {
         return context
     }
 
-    private async fullfillContext(context: Context, value: string): Promise<Reply> {
+    private async fullfillContext(context: Context, value: string, userId: string): Promise<Reply> {
         if (!context.isPublic()) {
             return context.firstReply()
         }
@@ -62,6 +80,8 @@ export class EventMessageHandler {
         if (fullfill) {
             if (fullfill.complete) {
                 this.contextMap.delete(context.getId())
+
+                return await this.actionParser.parse(context.name, context.actionInfo, userId)
             }
 
             return fullfill.reply
@@ -70,25 +90,8 @@ export class EventMessageHandler {
         return this.messageGenerator.getDefaultMessage()
     }
 
-    private async textParser(userId: string, replyToken: string, message: TextEventMessage): Promise<ReplyMessage> {
-        const context = await this.getContext(userId, message.text)
-        if (!context) {
-            return {
-                replyToken,
-                message: this.messageGenerator.getDefaultMessage(),
-            }
-        }
-        const reply = await this.fullfillContext(context, message.text)
-
-        return {
-            replyToken,
-            message: this.messageGenerator.parser(reply),
-        }
-    }
-
     private async imageParser(userId: string, replyToken: string, message: ImageEventMessage): Promise<ReplyMessage> {
-        const url = this.imageService.genLineMediaUrl(message.id)
-        const context = await this.getContext(userId, url)
+        const context = await this.getContext(userId, message.id)
         if (!context) {
             return {
                 replyToken,
@@ -96,7 +99,7 @@ export class EventMessageHandler {
             }
         }
 
-        const reply = await this.fullfillContext(context, url)
+        const reply = await this.fullfillContext(context, message.id, userId)
 
         return {
             replyToken,

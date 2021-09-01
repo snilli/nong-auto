@@ -32,13 +32,35 @@ export class MessageGenerator {
     }
 
     parser(reply: Reply): Message {
-        if (reply.type === 'text') {
-            return {
-                type: 'text',
-                text: reply.text,
-            }
+        switch (reply.type) {
+            case 'text':
+                return {
+                    type: 'text',
+                    text: reply.text,
+                }
+            case 'confirm':
+                return {
+                    type: 'template',
+                    altText: reply.title,
+                    template: {
+                        type: 'confirm',
+                        actions: [
+                            {
+                                type: 'message',
+                                label: reply.bottons[0].label,
+                                text: reply.bottons[0].text,
+                            },
+                            {
+                                type: 'message',
+                                label: reply.bottons[1].label,
+                                text: reply.bottons[1].text,
+                            },
+                        ],
+                        text: reply.title,
+                    },
+                }
+            default:
+                return this.getDefaultMessage()
         }
-
-        return this.getDefaultMessage()
     }
 }

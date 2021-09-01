@@ -13,12 +13,12 @@ export class FirebaseStorage {
         this.bucket = client.storage().bucket()
     }
 
-    async uploadFile(name: string): Promise<string> {
+    async uploadFile(name: string, userId: string): Promise<string> {
         const uuid = uuidv4()
         const path = tempFile(name)
         const [file] = await this.bucket.upload(path, {
             // กำหนด path ในการเก็บไฟล์แยกเป็นแต่ละ userId
-            destination: `photos/user/${name}`,
+            destination: `pdf/user/${userId}/${name}`,
             metadata: {
                 cacheControl: 'no-cache',
                 metadata: {
@@ -27,10 +27,12 @@ export class FirebaseStorage {
             },
         })
 
-        const prefix = `https://firebasestorage.googleapis.com/b/${this.bucket.name}/o`
+        const prefix = process.env.STORAGE_EMULATOR_HOST === 'http://localhost:9199' ?
+            `http://localhost:9199/v0/b/${this.bucket.name}/o` :
+            `https://firebasestorage.googleapis.com/v0/b/${this.bucket.name}/o`
         const suffix = `alt=media&token=${uuid}`
 
-        return `${prefix}/${encodeURIComponent(file[0].name)}?${suffix}`
+        return `${prefix}/${encodeURIComponent(file.name)}?${suffix}`
     }
 
     async saveFile(path: string, file: Buffer): Promise<File> {
