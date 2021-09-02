@@ -37,11 +37,11 @@ export class Action {
     }
 
     validateFullfill(value: string): boolean {
-        if (!this.action.checkValue) {
+        if (!this.action.validateValue) {
             return true
         }
 
-        return this.action.checkValue === value
+        return this.action.validateValue === value
     }
 
     toJSON(): ActionDetail {

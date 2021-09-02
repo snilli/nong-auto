@@ -32,6 +32,7 @@ export class ActionManager {
                 nextAction: i + 2,
                 lastAction: false,
                 text: `สามารถอัพได้อีก ${totalImage - i} รูป มีรูปที่ต้องการใส่เพิ่มอีกไหม? ถ้ามีโยนมาได้เลย หากสิ้นสุดแล้วให้พิมพ์ว่า หยุด `,
+                endValue: 'จบ',
                 errReply: 'error upload',
             }))
         }
@@ -47,7 +48,8 @@ export class ActionManager {
             ActionManager.actionConfirm({
                 lastAction: false,
                 nextAction: 8,
-                checkValue: 'ยืนยัน',
+                validateValue: 'ยืนยัน',
+                endValue: 'ยกเลิก',
                 title: 'กรุณายืนยันความถูกต้อง',
                 bottons: [
                     {
@@ -70,7 +72,7 @@ export class ActionManager {
         ]
     }
 
-    private static actionText({text, lastAction, nextAction, checkValue, errReply}: ActionTextInput): ActionDetail {
+    private static actionText({text, lastAction, nextAction, validateValue, errReply}: ActionTextInput): ActionDetail {
         return {
             reply: {
                 type: 'text',
@@ -78,7 +80,7 @@ export class ActionManager {
             },
             lastAction,
             nextAction,
-            checkValue,
+            validateValue: validateValue,
             errReply,
         }
     }
@@ -88,7 +90,7 @@ export class ActionManager {
         bottons,
         nextAction,
         errReply,
-        checkValue,
+        validateValue,
         lastAction,
     }: ActionConfirmInput): ActionDetail {
         return {
@@ -97,7 +99,7 @@ export class ActionManager {
                 bottons,
                 title,
             },
-            checkValue,
+            validateValue: validateValue,
             errReply,
             nextAction,
             lastAction,

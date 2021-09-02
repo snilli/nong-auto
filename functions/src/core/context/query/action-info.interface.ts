@@ -18,7 +18,8 @@ export type Reply = ReplyText | ReplyConfirm
 
 export interface ActionDetail {
     reply: Reply
-    checkValue?: string
+    validateValue?: string
+    endValue?: string
     value?: string
     errReply: string
     nextAction: number
@@ -29,7 +30,8 @@ export interface ActionTextInput {
     text: string
     nextAction: number
     errReply: string
-    checkValue?: string
+    endValue?: string
+    validateValue?: string
     lastAction: boolean
 }
 
@@ -38,6 +40,7 @@ export interface ActionConfirmInput {
     bottons: ActionConfirmButton[]
     nextAction: number
     errReply: string
-    checkValue?: string
+    validateValue?: string
+    endValue?: string
     lastAction: boolean
 }
